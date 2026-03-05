@@ -1,0 +1,64 @@
+imap:
+  host: "imap.mail.yahoo.com"
+  port: 993
+  # Optional fallback only; preferred auth is env vars YAHOO_EMAIL + YAHOO_APP_PASSWORD.
+  username: ""
+  folder: "Inbox"
+  ssl: true
+
+sync:
+  initial_backfill_days: 180
+  max_messages_per_run: 500
+  timezone: "America/Chicago"
+
+classification:
+  needs_review_confidence_threshold: 0.55
+  min_confident_score: 5
+  enable_llm_fallback: false
+  opportunity_gate:
+    allowed_domains:
+      - "linkedin.com"
+      - "indeed.com"
+      - "ziprecruiter.com"
+      - "greenhouse.io"
+      - "lever.co"
+      - "myworkdayjobs.com"
+      - "smartrecruiters.com"
+      - "icims.com"
+      - "taleo.net"
+      - "wellfound.com"
+    required_phrases:
+      - "recruiter"
+      - "talent acquisition"
+      - "hiring team"
+      - "came across your profile"
+      - "job opportunity"
+      - "position"
+      - "opening"
+      - "are you interested"
+    blocked_sender_fragments:
+      - "newsletter"
+      - "promo"
+      - "marketing"
+      - "noreply"
+
+matching:
+  fuzzy_high_threshold: 0.84
+  fuzzy_low_threshold: 0.65
+
+status:
+  auto_close_days: 45
+  follow_up_days:
+    Opportunity: 7
+    Applied: 10
+    Interview: 5
+    NeedsReview: 3
+
+export:
+  xlsx_path: "jobs.xlsx"
+  email_log_limit: 5000
+  snippet_length: 280
+
+logging:
+  level: "INFO"
+  file: "logs/sync.log"

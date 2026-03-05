@@ -1,0 +1,101 @@
+types:
+  ApplicationConfirmation:
+    score: 5
+    keywords:
+      - "thank you for applying"
+      - "application received"
+      - "we received your application"
+      - "submission confirmed"
+      - "your application to"
+  InterviewRequest:
+    score: 4
+    keywords:
+      - "interview"
+      - "phone screen"
+      - "schedule"
+      - "availability"
+      - "calendar invite"
+      - "meet with"
+      - "zoom"
+      - "teams meeting"
+      - "calendly"
+  Rejection:
+    score: 6
+    keywords:
+      - "unfortunately"
+      - "not moving forward"
+      - "moved forward with other candidates"
+      - "we regret"
+      - "position has been filled"
+      - "won't be moving forward"
+  Offer:
+    score: 7
+    keywords:
+      - "congratulations"
+      - "offer letter"
+      - "compensation package"
+      - "next steps for your offer"
+      - "we are pleased to offer"
+      - "verbal offer"
+      - "employment offer"
+      - "offer details"
+      - "salary"
+      - "base pay"
+      - "total compensation"
+      - "start date"
+      - "background check"
+      - "contingent offer"
+      - "benefits enrollment"
+  Opportunity:
+    score: 3
+    keywords:
+      - "came across your profile"
+      - "recruiter"
+      - "opportunity"
+      - "opening"
+      - "are you interested"
+      - "job alert"
+      - "new roles"
+      - "good fit"
+  Ad:
+    score: 2
+    keywords:
+      - "unsubscribe"
+      - "limited time"
+      - "sale"
+      - "discount"
+      - "special offer"
+      - "promo code"
+      - "newsletter"
+      - "webinar"
+      - "sponsored"
+
+regex:
+  req_id:
+    - "(?i)(req(uisition)?|job id|job #|requisition #)\\s*[:#-]?\\s*([A-Z0-9-]{3,})"
+  url:
+    - "(https?://[^\\s\\]>)]+)"
+  offer_strict:
+    - "(?i)\\boffer letter\\b"
+    - "(?i)\\bemployment offer\\b"
+    - "(?i)\\bwe are pleased to offer\\b"
+    - "(?i)\\bcontingent offer\\b"
+    - "(?i)\\bcompensation package\\b"
+    - "(?i)\\bbase salary\\b"
+    - "(?i)\\btotal compensation\\b"
+    - "(?i)\\bstart date\\b"
+
+domain_hints:
+  ats:
+    - "workday.com"
+    - "greenhouse.io"
+    - "lever.co"
+    - "icims.com"
+    - "smartrecruiters.com"
+    - "taleo.net"
+    - "myworkdayjobs.com"
+  ad:
+    - "mailchimp.com"
+    - "constantcontact.com"
+    - "sendgrid.net"
+    - "promo"
