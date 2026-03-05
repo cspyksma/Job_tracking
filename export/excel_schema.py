@@ -3,18 +3,19 @@ APPLICATION_COLUMNS = [
     "Company",
     "Role",
     "Location",
-    "ReqID / JobID",
+    "ReqID_JobID",
     "JobURL",
     "Source",
-    "DateFirstSeen",
-    "DateApplied",
     "Status",
     "StatusDate",
+    "DateFirstSeen",
+    "DateApplied",
     "LastEmailDate",
+    "FollowUpDue",
+    "DaysSinceLastEmail",
     "RecruiterName",
     "RecruiterEmail",
     "NextStep",
-    "FollowUpDue",
     "Notes",
     "EmailThreadLink",
     "LastMessageID",
@@ -37,45 +38,4 @@ EMAIL_LOG_COLUMNS = [
     "LinkedRecordID",
     "ExtractorNotes",
     "RawSnippet",
-]
-
-NEEDS_REVIEW_COLUMNS = [
-    "RecordID",
-    "Company",
-    "Role",
-    "Status",
-    "Confidence",
-    "MatchedBy",
-    "LastEmailDate",
-    "Notes",
-    "LastMessageID",
-    "EmailThreadLink",
-]
-
-OPPORTUNITY_COLUMNS = [
-    "RecordID",
-    "Company",
-    "Role",
-    "LastEmailDate",
-    "Status",
-    "Confidence",
-]
-
-CONFIRMATION_COLUMNS = [
-    "RecordID",
-    "Company",
-    "Role",
-    "DateApplied",
-    "LastMessageID",
-    "LastEmailDate",
-]
-
-UPDATE_COLUMNS = [
-    "RecordID",
-    "Company",
-    "Role",
-    "LastDetectedType",
-    "Status",
-    "LastEmailDate",
-    "Notes",
 ]
