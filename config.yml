@@ -15,6 +15,11 @@ classification:
   needs_review_confidence_threshold: 0.55
   min_confident_score: 5
   enable_llm_fallback: false
+  ignore_domains:
+    - "patreon.com"
+    - "substack.com"
+    - "medium.com"
+    - "connect.dice.com"
   opportunity_gate:
     allowed_domains:
       - "linkedin.com"
@@ -55,8 +60,8 @@ status:
     NeedsReview: 3
 
 export:
-  xlsx_path: "jobs.xlsx"
-  email_log_limit: 5000
+  xlsx_path: "C:\\Users\\coles\\Desktop\\Job_tracking\\job_tracker.xlsx"
+  email_log_limit: 500
   snippet_length: 280
 
 logging:

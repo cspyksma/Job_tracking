@@ -339,8 +339,9 @@ def write_excel(
         if ev["message_id_header"]:
             event_type_by_message[str(ev["message_id_header"])] = ev["detected_type"]
 
-    last_email_col = app_headers.index("LastEmailDate") + 1
-    days_col = app_headers.index("DaysSinceLastEmail") + 1
+    col_idx = {h: i + 1 for i, h in enumerate(app_headers)}
+    last_email_col = col_idx["LastEmailDate"]
+    days_col = col_idx["DaysSinceLastEmail"]
     for row in applications:
         last_type = event_type_by_uid.get(int(row["last_uid"] or 0), event_type_by_message.get(row["last_message_id_header"] or "", "Other"))
         if last_type == "Opportunity":
@@ -360,22 +361,19 @@ def write_excel(
         ws.cell(row_idx, days_col).value = f'=IF({last_col_letter}{row_idx}="","",TODAY()-{last_col_letter}{row_idx})'
 
         if row["job_url"]:
-            c = app_headers.index("JobURL") + 1
-            ws.cell(row_idx, c).hyperlink = row["job_url"]
-            ws.cell(row_idx, c).style = "Hyperlink"
+            ws.cell(row_idx, col_idx["JobURL"]).hyperlink = row["job_url"]
+            ws.cell(row_idx, col_idx["JobURL"]).style = "Hyperlink"
         if row["email_thread_link"]:
-            c = app_headers.index("EmailThreadLink") + 1
-            ws.cell(row_idx, c).hyperlink = row["email_thread_link"]
-            ws.cell(row_idx, c).style = "Hyperlink"
+            ws.cell(row_idx, col_idx["EmailThreadLink"]).hyperlink = row["email_thread_link"]
+            ws.cell(row_idx, col_idx["EmailThreadLink"]).style = "Hyperlink"
 
-    # Date/number formats.
-    for date_col in ["StatusDate", "DateFirstSeen", "DateApplied", "LastEmailDate", "FollowUpDue"]:
-        idx = app_headers.index(date_col) + 1
-        for r in range(2, ws.max_row + 1):
-            ws.cell(r, idx).number_format = "yyyy-mm-dd"
-    conf_idx = app_headers.index("Confidence") + 1
-    days_idx = app_headers.index("DaysSinceLastEmail") + 1
+    # Date/number formats — single pass over all rows.
+    date_col_indices = [col_idx[c] for c in ("StatusDate", "DateFirstSeen", "DateApplied", "LastEmailDate", "FollowUpDue")]
+    conf_idx = col_idx["Confidence"]
+    days_idx = col_idx["DaysSinceLastEmail"]
     for r in range(2, ws.max_row + 1):
+        for dc in date_col_indices:
+            ws.cell(r, dc).number_format = "yyyy-mm-dd"
         ws.cell(r, conf_idx).number_format = "0.00"
         ws.cell(r, days_idx).number_format = "0"
 
@@ -396,6 +394,8 @@ def write_excel(
     for ev in email_events:
         if count >= email_log_limit:
             break
+        if ev["detected_type"] == "Other":
+            continue
         row = {
             "MessageID": ev["message_id_header"],
             "ThreadID": ev["thread_hint"],

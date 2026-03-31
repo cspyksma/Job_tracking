@@ -69,10 +69,64 @@ types:
       - "newsletter"
       - "webinar"
       - "sponsored"
+      - "chapter update"
+      - "new chapter"
+      - "read now"
+      - "patreon"
+      - "view in browser"
+      - "manage preferences"
+      - "manage your email preferences"
+      - "email preferences"
+      - "digest"
+      - "weekly digest"
+      - "unsubscribe from"
+      - "update your preferences"
+      - "you are receiving this"
+      - "marketing email"
+      - "promotional"
+      - "coupon"
+      - "deal"
+      - "% off"
+      - "free trial"
+      - "click here to"
 
 regex:
+  # Positive signals: email is personally about THIS person's job application/process.
+  # If none of these match, a lifecycle classification is very likely a false positive.
+  personal_job_patterns:
+    - "(?i)\\byour application\\b"
+    - "(?i)\\byou(?:'ve| have) applied\\b"
+    - "(?i)\\bwe received your (application|resume|cv)\\b"
+    - "(?i)\\bthank you for applying\\b"
+    - "(?i)\\byour candidacy\\b"
+    - "(?i)\\bwe(?:'re| are) (?:pleased|excited|happy|delighted) to (?:offer|extend)\\b"
+    - "(?i)\\byou(?:'ve| have) been selected\\b"
+    - "(?i)\\bmoving forward with you\\b"
+    - "(?i)\\bschedule.*your.*interview\\b"
+    - "(?i)\\byour (?:phone |video )?(?:screen|interview)\\b"
+    - "(?i)\\bwe(?:'d| would) like to (?:schedule|invite|connect with) you\\b"
+    - "(?i)\\bwe(?:'re| are) (?:reviewing|considering) your\\b"
+    - "(?i)\\byour (?:resume|profile|background) (?:stood out|caught|impressed)\\b"
+    - "(?i)\\bcame across your (?:profile|resume|background)\\b"
+    - "(?i)\\bwe(?:'re| are) reaching out.*(?:role|position|opportunity)\\b"
+  # Negative signals: email is clearly not about a job (financial alerts, product marketing, etc.).
+  # If any of these match and no personal_job_patterns match, downgrade to Other.
+  not_job_patterns:
+    - "(?i)\\bcredit (?:score|card|limit|report|monitoring|alert)\\b"
+    - "(?i)\\baccount (?:balance|statement|alert|activity)\\b"
+    - "(?i)\\bpayment (?:due|received|processed|confirmed)\\b"
+    - "(?i)\\bapp store\\b|\\bgoogle play\\b"
+    - "(?i)\\bnew (?:feature|update|version|release)s?\\b"
+    - "(?i)\\btips (?:for|to|on) (?:using|getting|start)\\b"
+    - "(?i)\\bproduct (?:update|announcement|launch|news)\\b"
+    - "(?i)\\bdownload.*(?:ios|android|the app)\\b"
+    - "(?i)\\b(?:ios|android) app\\b"
+    - "(?i)\\bsecurity alert\\b"
+    - "(?i)\\bverification code\\b"
+    - "(?i)\\bpassword (?:reset|changed|updated)\\b"
   req_id:
-    - "(?i)(req(uisition)?|job id|job #|requisition #)\\s*[:#-]?\\s*([A-Z0-9-]{3,})"
+    - "(?i)\\b(?:req(?:uisition)?|requisition|job(?:\\s*id)?|posting(?:\\s*id)?)\\b\\s*(?:id|number|no\\.?|#)?\\s*[:#-]\\s*([A-Z0-9][A-Z0-9-]{2,})"
+    - "(?i)\\breq(?:uisition)?\\b\\s+([A-Z0-9-]{3,})"
   url:
     - "(https?://[^\\s\\]>)]+)"
   offer_strict:
@@ -84,6 +138,31 @@ regex:
     - "(?i)\\bbase salary\\b"
     - "(?i)\\btotal compensation\\b"
     - "(?i)\\bstart date\\b"
+  interview_strict:
+    # Direct, personal scheduling — the interview is actually being arranged for YOU now
+    - "(?i)\\bschedule\\s+your\\s+(phone\\s+|video\\s+)?interview\\b"
+    - "(?i)\\b(schedule|book|set up)\\s+(an\\s+)?interview\\s+with\\s+you\\b"
+    - "(?i)\\bwe(?:'d| would) (?:like|love) to (?:schedule|invite you|set up)\\b"
+    - "(?i)\\bwe(?:'re| are) (?:pleased|excited|happy) to invite you\\b"
+    - "(?i)\\byou(?:'ve| have) been selected for an? (?:interview|phone screen)\\b"
+    - "(?i)\\bplease\\s+share\\s+your\\s+availability\\b"
+    - "(?i)\\bcalendar\\s+invite\\b"
+    - "(?i)\\bphone\\s+screen\\b"
+    - "(?i)\\binterview\\s+on\\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\\b"
+    - "(?i)\\b(calendly|goodtime|greenhouse\\.io/scheduling|zoom\\.us|teams\\.microsoft\\.com)\\b"
+    # Confirmation of an already-scheduled interview (e.g. PVREA "confirming your availability")
+    - "(?i)\\bconfirm(?:ing|ed)\\s+your\\s+(?:interview|availability|phone\\s+call|slot)\\b"
+    - "(?i)\\bthis email serves as\\s+(?:a|your|an)\\s+(?:interview|confirmation)\\b"
+  interview_soft:
+    # Conditional / hypothetical — interview might happen but hasn't been scheduled yet
+    - "(?i)\\bif\\s+selected\\b"
+    - "(?i)\\bif\\s+we\\s+move\\s+forward\\b"
+    - "(?i)\\bmay\\s+be\\s+invited\\s+to\\s+interview\\b"
+    - "(?i)\\bcandidates\\s+who\\s+advance\\b"
+    - "(?i)\\bwill\\s+reach\\s+out.*to\\s+schedule\\b"
+    - "(?i)\\bif.*(?:qualif|match|suit).*(?:schedule|interview)\\b"
+    - "(?i)\\bwe\\s+may\\s+invite\\b"
+    - "(?i)\\b(schedule|book)\\s+an\\s+interview\\b"
 
 domain_hints:
   ats:
@@ -99,3 +178,11 @@ domain_hints:
     - "constantcontact.com"
     - "sendgrid.net"
     - "promo"
+    - "patreon.com"
+    - "mailgun.org"
+    - "exacttarget.com"
+    - "sailthru.com"
+    - "klaviyo.com"
+    - "beehiiv.com"
+    - "substack.com"
+    - "campaign-archive"

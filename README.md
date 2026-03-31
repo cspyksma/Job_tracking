@@ -61,6 +61,11 @@ Export DB -> Excel:
 python main.py --config config.yml export
 ```
 
+Note:
+- The workbook output path is controlled by `export.xlsx_path` in `config.yml`.
+- If this points to your OneDrive folder (for example `C:\Users\coles\OneDrive\job_tracker.xlsx`), OneDrive sync will update Excel Online automatically.
+- To speed up OneDrive sync, reduce `export.email_log_limit` (for example `500`).
+
 Run sync then export:
 
 ```powershell

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\coles\\\\Desktop\\\\Job_tracking\" && python -m pytest -q tests -p no:cacheprovider 2>&1)"
+    ]
+  }
+}

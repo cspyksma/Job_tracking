@@ -34,3 +34,23 @@ def test_real_job_offer_detected():
         "careers@company.com",
     )
     assert out.detected_type == "Offer"
+
+
+def test_future_maybe_interview_is_not_interview_request():
+    engine = RulesEngine("classification/rules.yml", CFG)
+    out = engine.classify(
+        "Application update",
+        "If selected, you may be invited to interview in a future round.",
+        "careers@company.com",
+    )
+    assert out.detected_type != "InterviewRequest"
+
+
+def test_interview_with_scheduling_language_stays_interview_request():
+    engine = RulesEngine("classification/rules.yml", CFG)
+    out = engine.classify(
+        "Let's schedule an interview",
+        "Please share your availability this week.",
+        "recruiter@company.com",
+    )
+    assert out.detected_type == "InterviewRequest"

@@ -15,7 +15,7 @@ from connectors.yahoo_imap_connector import YahooIMAPConnector
 from export.excel_writer import read_existing_application_overrides, write_excel
 from extraction.extract_fields import extract_fields
 from matching.matcher import Matcher
-from state_machine.status_logic import compute_follow_up_due, next_status
+from state_machine.status_logic import TYPE_TO_STATUS, compute_follow_up_due, next_status
 from storage.db import JobTrackerDB, from_iso, to_iso
 from utils.datetime_utils import utc_now
 from utils.logging import setup_logging
@@ -94,13 +94,7 @@ def run_doctor(cfg: dict[str, Any], folder: str) -> int:
 
 
 def _is_job_relevant(detected_type: str) -> bool:
-    return detected_type in {
-        "Opportunity",
-        "ApplicationConfirmation",
-        "InterviewRequest",
-        "Rejection",
-        "Offer",
-    }
+    return detected_type in TYPE_TO_STATUS
 
 
 def _opportunity_gate_passed(cfg: dict[str, Any], msg: dict[str, Any]) -> bool:
@@ -119,6 +113,12 @@ def _opportunity_gate_passed(cfg: dict[str, Any], msg: dict[str, Any]) -> bool:
     domain_ok = any(from_domain.endswith(d) for d in allowed_domains)
     phrase_ok = any(p in text for p in required_phrases)
     return domain_ok or phrase_ok
+
+
+def _is_ignored_domain(cfg: dict[str, Any], from_domain: str) -> bool:
+    ignored = [d.lower() for d in cfg.get("classification", {}).get("ignore_domains", [])]
+    domain = (from_domain or "").lower()
+    return any(domain.endswith(d) for d in ignored)
 
 
 def run_sync(cfg: dict[str, Any], folder: str, since_days: int | None = None) -> dict[str, int]:
@@ -197,6 +197,10 @@ def run_sync(cfg: dict[str, Any], folder: str, since_days: int | None = None) ->
             raw_meta["filtered_reason"] = "ad/newsletter"
         else:
             detected_type = cls.detected_type
+
+        if _is_ignored_domain(cfg, msg.get("from_domain", "")):
+            detected_type = "Other"
+            raw_meta["filtered_reason"] = "ignored_domain"
 
         if detected_type == "Opportunity" and not _opportunity_gate_passed(cfg, msg):
             raw_meta["opportunity_gate"] = "blocked"

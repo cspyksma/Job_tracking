@@ -55,6 +55,7 @@ class RulesEngine:
 
     def classify(self, subject: str, body: str, from_domain: str) -> ClassificationResult:
         text = f"{subject}\n{body}".lower()
+        from_domain_lower = from_domain.lower()
         min_score = int(self.config.get("classification", {}).get("min_confident_score", 5))
         signals: list[str] = []
 
@@ -67,7 +68,7 @@ class RulesEngine:
                         score += int(rule.get("score", 1))
                         signals.append(f"ad_kw:{kw}")
                 for dom in self.rules.get("domain_hints", {}).get("ad", []):
-                    if dom.lower() in from_domain.lower():
+                    if dom.lower() in from_domain_lower:
                         score += 3
                         signals.append(f"ad_dom:{dom}")
                         break
@@ -80,7 +81,7 @@ class RulesEngine:
 
         # ATS senders strongly indicate application lifecycle.
         for dom in self.rules.get("domain_hints", {}).get("ats", []):
-            if from_domain.endswith(dom.lower()):
+            if from_domain_lower.endswith(dom.lower()):
                 scores["ApplicationConfirmation"] = scores.get("ApplicationConfirmation", 0) + 5
                 signals.append(f"ats_domain:{dom}")
                 break
@@ -114,6 +115,51 @@ class RulesEngine:
                     best_score = 0
                     signals.append("offer_guardrail:fallback_to_other")
 
+        # Guardrail: interview should require concrete scheduling intent,
+        # not just generic "there may be an interview later" language.
+        if best_type == "InterviewRequest":
+            strict_hits = 0
+            for rx in self.rules.get("regex", {}).get("interview_strict", []):
+                if re.search(rx, text):
+                    strict_hits += 1
+            soft_hits = 0
+            for rx in self.rules.get("regex", {}).get("interview_soft", []):
+                if re.search(rx, text):
+                    soft_hits += 1
+            if strict_hits == 0 and soft_hits > 0:
+                alt_types = {k: v for k, v in scores.items() if k != "InterviewRequest"}
+                alt_best_type = max(alt_types, key=alt_types.get) if alt_types else "Other"
+                alt_best_score = alt_types.get(alt_best_type, 0)
+                if alt_best_score >= min_score:
+                    best_type = alt_best_type
+                    best_score = alt_best_score
+                    signals.append("interview_guardrail:fallback_to_alt")
+                else:
+                    best_type = "Other"
+                    best_score = 0
+                    signals.append("interview_guardrail:fallback_to_other")
+
+        # Guardrail: require personal job context for all lifecycle classifications.
+        # If the email contains clear non-job signals and zero personal job signals,
+        # it's a false positive regardless of which keyword scored highest.
+        if best_type in {"ApplicationConfirmation", "InterviewRequest", "Rejection", "Offer", "Opportunity"}:
+            is_ats = any(
+                from_domain_lower.endswith(dom.lower())
+                for dom in self.rules.get("domain_hints", {}).get("ats", [])
+            )
+            personal_hits = sum(
+                1 for rx in self.rules.get("regex", {}).get("personal_job_patterns", [])
+                if re.search(rx, text)
+            )
+            not_job_hits = sum(
+                1 for rx in self.rules.get("regex", {}).get("not_job_patterns", [])
+                if re.search(rx, text)
+            )
+            if not_job_hits > 0 and personal_hits == 0 and not is_ats:
+                best_type = "Other"
+                best_score = 0
+                signals.append("not_job_guardrail:context_mismatch")
+
         if best_type == "Ad" and best_score >= 4:
             return ClassificationResult("Ad", 0.9, "rule:ad_filter", best_score, signals)
 
@@ -134,7 +180,14 @@ class RulesEngine:
         for rx in self.rules.get("regex", {}).get("req_id", []):
             m = re.search(rx, text)
             if m:
-                return m.group(3).strip()
+                # Return the last non-empty capturing group to support multiple regex styles.
+                for g in reversed(m.groups()):
+                    if g:
+                        candidate = g.strip()
+                        low = candidate.lower()
+                        if low in {"required", "requirement", "requirements", "uired"}:
+                            break
+                        return candidate
         return ""
 
     def extract_urls(self, text: str) -> list[str]:
